@@ -2,1191 +2,822 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>デカブサTD proto</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<title>デカブサTD proto 横画面版</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;background:#111;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
-body{min-height:100svh}
-button,input,select{font:inherit}
-
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#050505;
+  color:#fff;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+}
 :root{
-  --maxw: 480px;
-  --panel: rgba(255,255,255,.08);
-  --line: rgba(255,255,255,.14);
-  --textDim: rgba(255,255,255,.72);
-  --good: #6ee7a8;
-  --bad: #ff8a8a;
-  --accent: #ffd66e;
+  --bg1:#0c0c0e;
+  --bg2:#17171c;
+  --line:rgba(255,255,255,.12);
+  --panel:rgba(255,255,255,.06);
+  --panel2:rgba(255,255,255,.08);
+  --textDim:rgba(255,255,255,.75);
+  --good:#8ff0c1;
+  --bad:#ff9b9b;
+  --accent:#ffd463;
+}
+body{
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.06), transparent 25%),
+    linear-gradient(90deg, #0a0a0c 0%, #17171b 45%, #101014 100%);
 }
 
 .app{
-  width:100%;
-  max-width:var(--maxw);
-  margin:0 auto;
-  min-height:100svh;
+  width:100vw;
+  height:100vh;
   display:flex;
   flex-direction:column;
-  background:linear-gradient(180deg,#171717 0%,#111 100%);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom)) 12px;
+  gap:10px;
 }
 
+/* 上部 */
 .topbar{
-  padding:10px 12px calc(10px + env(safe-area-inset-top));
-  border-bottom:1px solid var(--line);
-  background:rgba(0,0,0,.25);
-  position:sticky;
-  top:0;
-  z-index:20;
-  backdrop-filter:blur(8px);
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  padding:4px 2px 0;
+}
+.title-wrap{
+  min-width:0;
 }
 .title{
+  font-size:22px;
   font-weight:800;
-  letter-spacing:.04em;
-  font-size:18px;
+  letter-spacing:.02em;
 }
 .sub{
-  margin-top:4px;
-  color:var(--textDim);
+  margin-top:2px;
   font-size:12px;
+  color:var(--textDim);
+}
+.meta{
+  text-align:right;
+  white-space:nowrap;
+}
+.meta .time{
+  font-size:14px;
+  color:var(--textDim);
+}
+.meta .cost{
+  margin-top:4px;
+  font-size:30px;
+  font-weight:900;
+  color:var(--accent);
+  line-height:1;
 }
 
-.screen{display:none;flex:1;min-height:0}
-.screen.active{display:flex;flex-direction:column}
-
-.section{
-  padding:12px;
+/* HPバー */
+.status{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
-
-.card{
+.hpbox{
   background:var(--panel);
   border:1px solid var(--line);
   border-radius:16px;
-  padding:12px;
+  padding:10px 12px;
 }
-
-.btn{
-  border:none;
-  border-radius:14px;
-  padding:12px 14px;
-  color:#fff;
-  background:rgba(255,255,255,.1);
-  border:1px solid var(--line);
-  cursor:pointer;
-}
-.btn:active{transform:scale(.98)}
-.btn.primary{
-  background:#2a2a2a;
-  border-color:rgba(255,214,110,.4);
-  box-shadow:0 0 0 1px rgba(255,214,110,.08) inset;
-}
-.btn.full{width:100%}
-.btn.small{
-  padding:8px 10px;
-  border-radius:12px;
-  font-size:13px;
-}
-.btn:disabled{
-  opacity:.45;
-  cursor:default;
-}
-
-.grid{
-  display:grid;
-  gap:10px;
-}
-.grid.chars{
-  grid-template-columns:repeat(3,1fr);
-}
-.grid.controls{
-  grid-template-columns:repeat(3,1fr);
-}
-
-.pickCard{
-  position:relative;
-  background:rgba(255,255,255,.05);
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:8px;
-  min-height:132px;
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.pickCard.selected{
-  outline:2px solid rgba(255,214,110,.85);
-  background:rgba(255,214,110,.12);
-}
-.pickThumb{
-  width:100%;
-  aspect-ratio:1/1;
-  border-radius:12px;
-  background:rgba(255,255,255,.06);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-}
-.pickThumb img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-}
-.pickName{
-  font-size:13px;
-  font-weight:700;
-  text-align:center;
-  line-height:1.25;
-}
-.pickRole{
-  color:var(--textDim);
-  font-size:11px;
-  text-align:center;
-  min-height:28px;
-  line-height:1.2;
-}
-
-.selectedRow{
-  display:flex;
-  gap:8px;
-  margin-top:10px;
-}
-.selectedSlot{
-  flex:1;
-  min-height:64px;
-  border-radius:14px;
-  border:1px dashed var(--line);
-  background:rgba(255,255,255,.04);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:8px;
-  text-align:center;
-  color:var(--textDim);
-  font-size:12px;
-}
-.selectedSlot.filled{
-  border-style:solid;
-  color:#fff;
-}
-
-.infoList{
-  display:grid;
-  gap:8px;
-  margin-top:10px;
-}
-.infoItem{
+.hphead{
   display:flex;
   justify-content:space-between;
-  gap:10px;
-  font-size:13px;
+  font-size:14px;
+  margin-bottom:8px;
 }
-.infoItem .k{color:var(--textDim)}
-
-.gameWrap{
-  display:flex;
-  flex-direction:column;
-  min-height:0;
-  flex:1;
-}
-
-.hud{
-  padding:8px 12px;
-  border-bottom:1px solid var(--line);
-  background:rgba(0,0,0,.18);
-}
-.hudRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  font-size:13px;
-  margin-bottom:6px;
-}
-.hudRow:last-child{margin-bottom:0}
-.hpbar{
-  position:relative;
-  height:10px;
-  background:rgba(255,255,255,.12);
+.bar{
+  width:100%;
+  height:14px;
   border-radius:999px;
+  background:rgba(255,255,255,.08);
   overflow:hidden;
+  border:1px solid rgba(255,255,255,.05);
 }
-.hpfill{
-  position:absolute;inset:0 auto 0 0;
+.fill{
+  height:100%;
   width:100%;
-  background:linear-gradient(90deg,var(--good),#b9ffcb);
+  border-radius:999px;
+  transition:width .2s linear;
 }
-.hpfill.enemy{
-  background:linear-gradient(90deg,#ffb0b0,var(--bad));
-}
+.fill.player{ background:linear-gradient(90deg,#7fe5b6,#8ff0c1); }
+.fill.enemy{ background:linear-gradient(90deg,#ffb3b3,#ff8f8f); }
 
-.field{
-  position:relative;
+/* メイン */
+.main{
   flex:1;
-  min-height:320px;
-  overflow:hidden;
-  background:
-    linear-gradient(180deg,#323232 0%,#2a2a2a 40%,#2f2f2f 40%,#2f2f2f 100%);
-}
-.field::before{
-  content:"";
-  position:absolute;inset:0;
-  background:
-    linear-gradient(transparent 0 calc(100% - 58px), rgba(255,255,255,.07) calc(100% - 58px) calc(100% - 56px), transparent calc(100% - 56px));
-  pointer-events:none;
+  min-height:0;
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:12px;
 }
 
+/* 戦場 */
+.battle-panel{
+  position:relative;
+  min-width:0;
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border:1px solid var(--line);
+  border-radius:20px;
+  overflow:hidden;
+}
+.battle-header{
+  position:absolute;
+  inset:10px 12px auto 12px;
+  z-index:5;
+  display:flex;
+  justify-content:space-between;
+  pointer-events:none;
+  font-size:14px;
+  color:rgba(255,255,255,.8);
+}
+.field{
+  position:absolute;
+  inset:0;
+}
+.lane{
+  position:absolute;
+  left:0; right:0;
+  top:50%;
+  height:110px;
+  transform:translateY(-50%);
+  border-top:2px solid rgba(255,255,255,.10);
+  border-bottom:2px solid rgba(255,255,255,.06);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 79px,
+      rgba(255,255,255,.03) 79px 80px
+    );
+}
 .base{
   position:absolute;
-  bottom:40px;
-  width:66px;
-  height:110px;
-  border-radius:14px;
-  background:rgba(255,255,255,.12);
-  border:1px solid rgba(255,255,255,.18);
+  top:50%;
+  width:110px;
+  height:170px;
+  transform:translateY(-50%);
+  border-radius:22px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:12px;
-  font-weight:700;
   text-align:center;
-  padding:8px;
+  font-weight:800;
+  font-size:18px;
+  line-height:1.35;
+  z-index:2;
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(6px);
 }
-.base.player{left:8px}
-.base.enemy{right:8px;background:rgba(255,90,90,.13)}
-
+.base.player{
+  left:20px;
+  color:#fff;
+  background:rgba(140,240,193,.14);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+}
+.base.enemy{
+  right:20px;
+  color:#fff;
+  background:rgba(255,155,155,.16);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);
+}
 .unit{
   position:absolute;
-  bottom:48px;
-  width:58px;
-  height:58px;
-  transform:translateX(-50%);
+  bottom:44px;
+  width:72px;
+  user-select:none;
   pointer-events:none;
+  transform:translateX(-50%);
+  z-index:3;
 }
-.unit img{
-  width:100%;
-  height:100%;
+.unit .sprite{
+  width:72px;
+  height:72px;
   object-fit:contain;
   display:block;
-  filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));
+  margin:0 auto;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
 }
-.unit .badge{
-  position:absolute;
-  left:50%;
-  bottom:-14px;
-  transform:translateX(-50%);
-  font-size:10px;
+.unit .name{
+  margin-top:2px;
+  font-size:12px;
+  text-align:center;
   white-space:nowrap;
-  color:#fff;
-  text-shadow:0 1px 2px rgba(0,0,0,.6);
+  text-shadow:0 2px 8px rgba(0,0,0,.8);
 }
-.unit.enemy .sprite{
-  filter:grayscale(.08) brightness(.95) drop-shadow(0 2px 3px rgba(0,0,0,.35));
+.unit .hp{
+  width:56px;
+  height:6px;
+  margin:4px auto 0;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.14);
+}
+.unit .hp > i{
+  display:block;
+  height:100%;
+  width:100%;
+  background:#fff;
 }
 
-.hitFlash{
+.hit{
   position:absolute;
-  inset:auto auto 0 0;
-  width:18px;
-  height:18px;
+  width:16px;
+  height:16px;
   border-radius:50%;
   background:rgba(255,255,255,.85);
-  transform:translate(-50%,-50%);
-  animation:flash .22s ease-out forwards;
+  box-shadow:0 0 16px rgba(255,255,255,.8);
   pointer-events:none;
+  z-index:6;
+  animation:hitFlash .25s ease-out forwards;
 }
-@keyframes flash{
-  from{opacity:.95;transform:translate(-50%,-50%) scale(.4)}
-  to{opacity:0;transform:translate(-50%,-50%) scale(2.1)}
+@keyframes hitFlash{
+  from{transform:scale(.6);opacity:1}
+  to{transform:scale(2.1);opacity:0}
 }
 
-.bottomPanel{
-  padding:10px 12px calc(12px + env(safe-area-inset-bottom));
-  border-top:1px solid var(--line);
-  background:rgba(0,0,0,.2);
+/* 右カラム */
+.side{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:0;
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+}
+.card-title{
+  font-size:15px;
+  font-weight:800;
+  margin-bottom:10px;
+}
+.unit-list{
   display:grid;
+  grid-template-columns:1fr;
   gap:10px;
 }
-.costBox{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.spawn-btn{
+  width:100%;
+  background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  color:#fff;
+  padding:10px;
+  display:grid;
+  grid-template-columns:58px 1fr auto;
   gap:10px;
+  align-items:center;
+}
+.spawn-btn:active{ transform:scale(.99) }
+.spawn-btn.disabled{
+  opacity:.42;
+  filter:grayscale(.25);
+}
+.spawn-btn img{
+  width:58px;
+  height:58px;
+  object-fit:contain;
+}
+.spawn-main{
+  text-align:left;
+}
+.spawn-name{
+  font-size:16px;
+  font-weight:800;
+}
+.spawn-cost{
+  margin-top:4px;
+  color:var(--accent);
+  font-weight:700;
   font-size:14px;
 }
-.costNum{
-  font-weight:800;
-  color:var(--accent);
-}
-.spawnRow{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-}
-.spawnBtn{
-  position:relative;
-  min-height:90px;
-  padding:6px;
-  border-radius:16px;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,.06);
-  color:#fff;
-}
-.spawnBtn .thumb{
-  width:46px;height:46px;
-  margin:0 auto 4px;
-}
-.spawnBtn .thumb img{
-  width:100%;height:100%;object-fit:contain;
-}
-.spawnBtn .name{
-  font-size:12px;
-  font-weight:700;
-  line-height:1.1;
-}
-.spawnBtn .cost{
-  margin-top:4px;
-  font-size:11px;
-  color:var(--accent);
-}
-.spawnBtn .cd{
+.spawn-sub{
   margin-top:2px;
-  font-size:10px;
+  font-size:12px;
   color:var(--textDim);
+}
+.cool{
+  font-size:12px;
+  color:var(--textDim);
+  white-space:nowrap;
 }
 
 .log{
-  height:62px;
+  flex:1;
+  min-height:120px;
   overflow:auto;
-  padding:8px 10px;
-  border-radius:12px;
-  background:rgba(255,255,255,.05);
-  border:1px solid var(--line);
+  background:rgba(0,0,0,.18);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;
+  padding:10px;
+  font-size:13px;
+  line-height:1.55;
+  color:rgba(255,255,255,.9);
+}
+.log-line{ margin-bottom:3px }
+
+.bottom-note{
   font-size:12px;
-  line-height:1.35;
-  color:var(--textDim);
-}
-
-.resultText{
+  color:rgba(255,255,255,.6);
   text-align:center;
-  font-size:24px;
-  font-weight:900;
-  margin:18px 0 8px;
 }
-.resultSub{
+
+.overlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.58);
+  z-index:20;
+  padding:20px;
+}
+.overlay.show{ display:flex }
+.result{
+  width:min(560px,100%);
+  background:linear-gradient(180deg, rgba(30,30,34,.96), rgba(14,14,16,.96));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:24px;
+  padding:26px 20px;
   text-align:center;
+  box-shadow:0 16px 50px rgba(0,0,0,.45);
+}
+.result h2{
+  margin:0 0 10px;
+  font-size:30px;
+}
+.result p{
+  margin:0 0 16px;
   color:var(--textDim);
-  font-size:14px;
-  margin-bottom:16px;
+}
+.result button{
+  appearance:none;
+  border:none;
+  background:#fff;
+  color:#000;
+  font-weight:800;
+  font-size:16px;
+  border-radius:14px;
+  padding:12px 22px;
 }
 
-.mono{
-  font-variant-numeric:tabular-nums;
-}
-
-.tips{
-  font-size:12px;
-  color:var(--textDim);
-  line-height:1.5;
-  margin-top:8px;
+@media (max-width: 950px){
+  .main{
+    grid-template-columns:1fr 290px;
+  }
 }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="title">デカブサTD proto</div>
-    <div class="sub">1枚絵PNGで動く・1人用試作版</div>
+    <div class="title-wrap">
+      <div class="title">デカブサTD proto</div>
+      <div class="sub">横画面版・1枚絵PNGで動く・1人用試作版</div>
+    </div>
+    <div class="meta">
+      <div class="time" id="timeText">時間 0.0s</div>
+      <div class="cost" id="costText">50</div>
+    </div>
   </div>
 
-  <!-- SELECT -->
-  <section id="screenSelect" class="screen active">
-    <div class="section">
-      <div class="card">
-        <div style="font-weight:800;font-size:16px;">出撃メンバーを3体選ぶ</div>
-        <div class="tips">
-          まずはこの12体から3体選択。<br>
-          1体目・2体目・3体目がそのまま下の出撃ボタンになる。
-        </div>
-
-        <div id="selectedRow" class="selectedRow">
-          <div class="selectedSlot">1体目</div>
-          <div class="selectedSlot">2体目</div>
-          <div class="selectedSlot">3体目</div>
-        </div>
-      </div>
+  <div class="status">
+    <div class="hpbox">
+      <div class="hphead"><span>自基地</span><span id="playerBaseLabel">1000 / 1000</span></div>
+      <div class="bar"><div class="fill player" id="playerBaseBar"></div></div>
     </div>
-
-    <div class="section" style="padding-top:0;">
-      <div id="charGrid" class="grid chars"></div>
+    <div class="hpbox">
+      <div class="hphead"><span>敵基地</span><span id="enemyBaseLabel">1000 / 1000</span></div>
+      <div class="bar"><div class="fill enemy" id="enemyBaseBar"></div></div>
     </div>
+  </div>
 
-    <div class="section" style="padding-top:0;margin-top:auto;">
-      <div class="card">
-        <div class="infoList">
-          <div class="infoItem"><span class="k">ルール</span><span>敵基地を先に壊せば勝ち</span></div>
-          <div class="infoItem"><span class="k">勝ち筋</span><span>出す順番とコスト管理</span></div>
-          <div class="infoItem"><span class="k">今の段階</span><span>まず雰囲気重視の試作</span></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
-          <button id="btnClearPick" class="btn">選択クリア</button>
-          <button id="btnStartBattle" class="btn primary">この編成で開始</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- GAME -->
-  <section id="screenGame" class="screen">
-    <div class="gameWrap">
-      <div class="hud">
-        <div class="hudRow">
-          <div>自基地 <span id="playerHpText" class="mono">1000 / 1000</span></div>
-          <div>敵基地 <span id="enemyHpText" class="mono">1000 / 1000</span></div>
-        </div>
-        <div class="hudRow">
-          <div style="flex:1;">
-            <div class="hpbar"><div id="playerHpFill" class="hpfill"></div></div>
-          </div>
-          <div style="width:8px;"></div>
-          <div style="flex:1;">
-            <div class="hpbar"><div id="enemyHpFill" class="hpfill enemy"></div></div>
-          </div>
-        </div>
+  <div class="main">
+    <div class="battle-panel">
+      <div class="battle-header">
+        <div>左：デカブサ軍</div>
+        <div>右：ザコ敵軍</div>
       </div>
 
-      <div id="field" class="field">
+      <div class="field" id="field">
+        <div class="lane"></div>
         <div class="base player">デカブサ<br>基地</div>
-        <div class="base enemy">敵基地</div>
-      </div>
-
-      <div class="bottomPanel">
-        <div class="costBox">
-          <div>コスト <span id="costText" class="costNum mono">0</span></div>
-          <div>時間 <span id="timeText" class="mono">0.0</span>s</div>
-        </div>
-
-        <div id="spawnRow" class="spawnRow"></div>
-
-        <div id="battleLog" class="log">準備完了。</div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button id="btnBackSelect" class="btn">編成に戻る</button>
-          <button id="btnRestartBattle" class="btn primary">同じ編成で再戦</button>
-        </div>
+        <div class="base enemy">敵<br>基地</div>
       </div>
     </div>
-  </section>
 
-  <!-- RESULT -->
-  <section id="screenResult" class="screen">
-    <div class="section" style="margin-top:auto;">
+    <div class="side">
       <div class="card">
-        <div id="resultText" class="resultText">勝利</div>
-        <div id="resultSub" class="resultSub">敵基地を破壊した</div>
+        <div class="card-title">出撃</div>
+        <div class="unit-list" id="unitList"></div>
+      </div>
 
-        <div class="infoList">
-          <div class="infoItem"><span class="k">経過時間</span><span id="resultTime" class="mono">0.0s</span></div>
-          <div class="infoItem"><span class="k">残り自基地HP</span><span id="resultRemain" class="mono">0</span></div>
-          <div class="infoItem"><span class="k">編成</span><span id="resultParty">-</span></div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
-          <button id="btnResultToSelect" class="btn">編成に戻る</button>
-          <button id="btnResultRetry" class="btn primary">もう一回</button>
-        </div>
+      <div class="card" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+        <div class="card-title">ログ</div>
+        <div class="log" id="log"></div>
       </div>
     </div>
-    <div class="section">
-      <div class="tips">
-        今は「1枚絵で雰囲気を見る段階」。  
-        次はここに、攻撃演出・キャラ固有能力・敵種類増加を足していけばかなりゲームになる。
-      </div>
-    </div>
-  </section>
+  </div>
+
+  <div class="bottom-note">横向き前提。敵をやや強化済み。</div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="result">
+    <h2 id="resultTitle">勝利</h2>
+    <p id="resultText">敵基地を破壊した。</p>
+    <button id="restartBtn">もう一度</button>
+  </div>
 </div>
 
 <script>
 /* =========================
-   画像ファイル名
-   ここを自分のPNG名に合わせればOK
+   画像
 ========================= */
-const IMAGE_MAP = {
-  dekabusa: "deka.png",
-  tora: "tora.png",
-  ani: "ani.png",
+const IMG = {
+  dekabusa: "dekabusa.png",
   gori: "gori.png",
-  kabao: "kabao.png",
-  latte: "late.png",
-  panpan: "panpan.png",
-  nise: "nise.png",
-  namaken: "nama.png",
-  king: "king.png",
-  juuzou: "juzo.png",
-  kanemon: "kan.png",
-
-  // 敵用の仮画像
-  enemy1: "ene1.png",
-  enemy2: "ene2.png",
-  enemy3: "ene3.png"
+  latero: "latero.png",
+  enemy: "enemy.png"
 };
 
 /* =========================
-   キャラ定義
+   ユニット定義
 ========================= */
-const CHARACTERS = [
+const PLAYER_UNITS = [
   {
     id:"dekabusa",
     name:"デカブサ",
-    role:"波あり万能",
+    img:IMG.dekabusa,
     cost:50,
-    hp:250,
-    atk:28,
-    speed:0.55,
-    range:46,
-    atkInterval:0.95,
-    img:IMAGE_MAP.dekabusa
-  },
-  {
-    id:"tora",
-    name:"トラさん",
-    role:"分身ラッシュ",
-    cost:44,
-    hp:180,
-    atk:20,
-    speed:0.78,
+    hp:150,
+    atk:16,
+    speed:46,
     range:38,
-    atkInterval:0.65,
-    img:IMAGE_MAP.tora
-  },
-  {
-    id:"ani",
-    name:"デカブサ兄",
-    role:"高速アタッカー",
-    cost:62,
-    hp:130,
-    atk:48,
-    speed:1.18,
-    range:36,
-    atkInterval:0.55,
-    img:IMAGE_MAP.ani
+    interval:0.95,
+    cooldown:0.0
   },
   {
     id:"gori",
     name:"ゴリさん",
-    role:"押し込み前衛",
+    img:IMG.gori,
     cost:60,
-    hp:330,
-    atk:32,
-    speed:0.58,
-    range:40,
-    atkInterval:0.85,
-    img:IMAGE_MAP.gori
+    hp:240,
+    atk:23,
+    speed:32,
+    range:42,
+    interval:1.10,
+    cooldown:0.0
   },
   {
-    id:"kabao",
-    name:"カバオ",
-    role:"鉄壁の壁",
-    cost:55,
-    hp:520,
-    atk:8,
-    speed:0.36,
-    range:34,
-    atkInterval:1.05,
-    img:IMAGE_MAP.kabao
-  },
-  {
-    id:"latte",
+    id:"latero",
     name:"ラテロウ",
-    role:"軽量サポ寄り",
+    img:IMG.latero,
     cost:34,
-    hp:120,
-    atk:16,
-    speed:0.88,
-    range:40,
-    atkInterval:0.62,
-    img:IMAGE_MAP.latte
-  },
-  {
-    id:"panpan",
-    name:"パンパン",
-    role:"じわ押し中衛",
-    cost:42,
-    hp:210,
-    atk:18,
-    speed:0.62,
-    range:44,
-    atkInterval:0.78,
-    img:IMAGE_MAP.panpan
-  },
-  {
-    id:"nise",
-    name:"ニセブサ",
-    role:"やや不安定",
-    cost:40,
-    hp:170,
-    atk:24,
-    speed:0.70,
-    range:40,
-    atkInterval:0.76,
-    img:IMAGE_MAP.nise
-  },
-  {
-    id:"namaken",
-    name:"ナマケン",
-    role:"遅いけど硬め",
-    cost:46,
-    hp:290,
-    atk:15,
-    speed:0.42,
-    range:38,
-    atkInterval:0.95,
-    img:IMAGE_MAP.namaken
-  },
-  {
-    id:"king",
-    name:"キング",
-    role:"重め前衛",
-    cost:68,
-    hp:360,
-    atk:38,
-    speed:0.52,
-    range:40,
-    atkInterval:0.88,
-    img:IMAGE_MAP.king
-  },
-  {
-    id:"juuzou",
-    name:"ジュウゾウ",
-    role:"超重戦車",
-    cost:72,
-    hp:620,
-    atk:30,
-    speed:0.30,
-    range:40,
-    atkInterval:1.10,
-    img:IMAGE_MAP.juuzou
-  },
-  {
-    id:"kanemon",
-    name:"カンえもん",
-    role:"道具っぽい万能",
-    cost:58,
-    hp:220,
-    atk:30,
-    speed:0.66,
-    range:52,
-    atkInterval:0.82,
-    img:IMAGE_MAP.kanemon
+    hp:90,
+    atk:12,
+    speed:62,
+    range:34,
+    interval:0.72,
+    cooldown:0.0
   }
 ];
 
 /* =========================
-   敵定義
+   敵強化版
 ========================= */
 const ENEMY_TYPES = [
-  { id:"enemy1", name:"ザコ敵", hp:110, atk:12, speed:0.62, range:36, atkInterval:0.8, img:IMAGE_MAP.enemy1 },
-  { id:"enemy2", name:"硬い敵", hp:220, atk:18, speed:0.42, range:36, atkInterval:0.95, img:IMAGE_MAP.enemy2 },
-  { id:"enemy3", name:"速い敵", hp:85,  atk:10, speed:0.92, range:36, atkInterval:0.55, img:IMAGE_MAP.enemy3 }
+  {
+    id:"enemy",
+    name:"ザコ敵",
+    img:IMG.enemy,
+    hp:135,          // 前より少し高め
+    atk:15,          // 少し強め
+    speed:44,
+    range:38,
+    interval:0.95
+  },
+  {
+    id:"enemyHeavy",
+    name:"強め敵",
+    img:IMG.enemy,
+    hp:220,
+    atk:22,
+    speed:32,
+    range:40,
+    interval:1.15
+  }
 ];
-
-/* =========================
-   DOM
-========================= */
-const screenSelect = document.getElementById("screenSelect");
-const screenGame = document.getElementById("screenGame");
-const screenResult = document.getElementById("screenResult");
-
-const charGrid = document.getElementById("charGrid");
-const selectedRow = document.getElementById("selectedRow");
-const btnClearPick = document.getElementById("btnClearPick");
-const btnStartBattle = document.getElementById("btnStartBattle");
-
-const field = document.getElementById("field");
-const spawnRow = document.getElementById("spawnRow");
-const battleLog = document.getElementById("battleLog");
-const costText = document.getElementById("costText");
-const timeText = document.getElementById("timeText");
-const playerHpText = document.getElementById("playerHpText");
-const enemyHpText = document.getElementById("enemyHpText");
-const playerHpFill = document.getElementById("playerHpFill");
-const enemyHpFill = document.getElementById("enemyHpFill");
-
-const btnBackSelect = document.getElementById("btnBackSelect");
-const btnRestartBattle = document.getElementById("btnRestartBattle");
-
-const resultText = document.getElementById("resultText");
-const resultSub = document.getElementById("resultSub");
-const resultTime = document.getElementById("resultTime");
-const resultRemain = document.getElementById("resultRemain");
-const resultParty = document.getElementById("resultParty");
-const btnResultToSelect = document.getElementById("btnResultToSelect");
-const btnResultRetry = document.getElementById("btnResultRetry");
 
 /* =========================
    状態
 ========================= */
-let selectedParty = [];
-let units = [];
-let gameRunning = false;
-let rafId = 0;
-let lastTs = 0;
-let elapsed = 0;
-let cost = 100;
-let maxCost = 160;
-let playerBaseHp = 1000;
-let enemyBaseHp = 1000;
-let enemySpawnTimer = 0;
-let enemySpawnInterval = 2.3;
-let unitSeq = 1;
-let activeSpawnButtons = [];
+let state;
+const field = document.getElementById("field");
+const unitList = document.getElementById("unitList");
+const logEl = document.getElementById("log");
+const costText = document.getElementById("costText");
+const timeText = document.getElementById("timeText");
+const playerBaseLabel = document.getElementById("playerBaseLabel");
+const enemyBaseLabel = document.getElementById("enemyBaseLabel");
+const playerBaseBar = document.getElementById("playerBaseBar");
+const enemyBaseBar = document.getElementById("enemyBaseBar");
+const overlay = document.getElementById("overlay");
+const resultTitle = document.getElementById("resultTitle");
+const resultText = document.getElementById("resultText");
+const restartBtn = document.getElementById("restartBtn");
 
-/* =========================
-   便利
-========================= */
-function showScreen(name){
-  screenSelect.classList.remove("active");
-  screenGame.classList.remove("active");
-  screenResult.classList.remove("active");
-  if(name==="select") screenSelect.classList.add("active");
-  if(name==="game") screenGame.classList.add("active");
-  if(name==="result") screenResult.classList.add("active");
-}
+function resetGame(){
+  state = {
+    running:true,
+    time:0,
+    lastTs:0,
+    cost:50,
+    costRegen:8.5,
+    playerBaseHp:1000,
+    enemyBaseHp:1000,
+    units:[],
+    nextId:1,
 
-function clamp(v,min,max){
-  return Math.max(min, Math.min(max, v));
-}
-
-function logLine(text){
-  battleLog.innerHTML = `${text}<br>` + battleLog.innerHTML;
-}
-
-function updateSelectedRow(){
-  const slots = [...selectedRow.children];
-  for(let i=0;i<3;i++){
-    const slot = slots[i];
-    const ch = selectedParty[i];
-    if(ch){
-      slot.classList.add("filled");
-      slot.textContent = ch.name;
-    }else{
-      slot.classList.remove("filled");
-      slot.textContent = `${i+1}体目`;
-    }
-  }
-}
-
-function refreshPickCards(){
-  const cards = [...charGrid.querySelectorAll(".pickCard")];
-  cards.forEach(card=>{
-    const id = card.dataset.id;
-    const idx = selectedParty.findIndex(c=>c.id===id);
-    card.classList.toggle("selected", idx!==-1);
-  });
-}
-
-function imgHtml(src, alt){
-  return `<img src="${src}" alt="${alt}" onerror="this.style.opacity=.25;this.style.objectFit='cover';this.src='data:image/svg+xml;utf8,${encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
-      <rect width='100%' height='100%' fill='#444'/>
-      <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='22'>NO IMAGE</text>
-    </svg>`
-  )}'">`;
-}
-
-/* =========================
-   キャラ選択UI
-========================= */
-function buildSelectScreen(){
-  charGrid.innerHTML = "";
-  CHARACTERS.forEach(ch=>{
-    const div = document.createElement("button");
-    div.className = "pickCard";
-    div.dataset.id = ch.id;
-    div.innerHTML = `
-      <div class="pickThumb">${imgHtml(ch.img, ch.name)}</div>
-      <div class="pickName">${ch.name}</div>
-      <div class="pickRole">${ch.role}</div>
-    `;
-    div.addEventListener("click", ()=>{
-      const already = selectedParty.findIndex(v=>v.id===ch.id);
-      if(already !== -1){
-        selectedParty.splice(already,1);
-      }else{
-        if(selectedParty.length >= 3){
-          selectedParty.shift();
-        }
-        selectedParty.push(ch);
-      }
-      updateSelectedRow();
-      refreshPickCards();
-    });
-    charGrid.appendChild(div);
-  });
-  updateSelectedRow();
-  refreshPickCards();
-}
-
-/* =========================
-   ユニット生成
-========================= */
-function createUnit(data, side){
-  const el = document.createElement("div");
-  el.className = `unit ${side === "enemy" ? "enemy" : "player"}`;
-  el.innerHTML = `
-    <img class="sprite" src="${data.img}" alt="${data.name}">
-    <div class="badge">${data.name}</div>
-  `;
-  el.querySelector("img").onerror = function(){
-    this.style.opacity = ".25";
-    this.src = "data:image/svg+xml;utf8," + encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
-        <rect width='100%' height='100%' fill='#444'/>
-        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='22'>${side==="enemy" ? "ENEMY" : "PNG"}</text>
-      </svg>
-    `);
+    // 敵強化ポイント
+    enemySpawnTimer:1.8,   // 早めに出る
+    enemySpawnMin:1.9,     // 少し短い
+    enemySpawnMax:3.4
   };
 
+  field.querySelectorAll(".unit, .hit").forEach(el=>el.remove());
+  logEl.innerHTML = "";
+  overlay.classList.remove("show");
+
+  PLAYER_UNITS.forEach(u => u.cooldown = 0);
+  renderSpawnButtons();
+  updateHud();
+  addLog("戦闘開始");
+  requestAnimationFrame(loop);
+}
+
+/* =========================
+   UI
+========================= */
+function renderSpawnButtons(){
+  unitList.innerHTML = "";
+  PLAYER_UNITS.forEach((u, i)=>{
+    const btn = document.createElement("button");
+    btn.className = "spawn-btn";
+    btn.innerHTML = `
+      <img src="${u.img}" alt="">
+      <div class="spawn-main">
+        <div class="spawn-name">${i+1}. ${u.name}</div>
+        <div class="spawn-cost">コスト ${u.cost}</div>
+        <div class="spawn-sub">出撃</div>
+      </div>
+      <div class="cool" id="cool_${u.id}">OK</div>
+    `;
+    btn.onclick = ()=>spawnPlayerUnit(u.id);
+    btn.dataset.id = u.id;
+    unitList.appendChild(btn);
+  });
+}
+
+function updateHud(){
+  costText.textContent = Math.floor(state.cost);
+  timeText.textContent = `時間 ${state.time.toFixed(1)}s`;
+
+  playerBaseLabel.textContent = `${Math.max(0,Math.ceil(state.playerBaseHp))} / 1000`;
+  enemyBaseLabel.textContent = `${Math.max(0,Math.ceil(state.enemyBaseHp))} / 1000`;
+
+  playerBaseBar.style.width = `${Math.max(0, state.playerBaseHp / 10)}%`;
+  enemyBaseBar.style.width = `${Math.max(0, state.enemyBaseHp / 10)}%`;
+
+  PLAYER_UNITS.forEach(u=>{
+    const btn = [...unitList.querySelectorAll(".spawn-btn")].find(b=>b.dataset.id===u.id);
+    const cool = document.getElementById(`cool_${u.id}`);
+    const usable = state.cost >= u.cost && u.cooldown <= 0 && state.running;
+    btn.classList.toggle("disabled", !usable);
+    cool.textContent = u.cooldown > 0 ? `${u.cooldown.toFixed(1)}s` : "OK";
+  });
+}
+
+function addLog(text){
+  const line = document.createElement("div");
+  line.className = "log-line";
+  line.textContent = text;
+  logEl.prepend(line);
+}
+
+/* =========================
+   出撃
+========================= */
+function createUnit(data, team){
+  const el = document.createElement("div");
+  el.className = "unit";
+  el.innerHTML = `
+    <img class="sprite" src="${data.img}" alt="">
+    <div class="name">${data.name}</div>
+    <div class="hp"><i></i></div>
+  `;
   field.appendChild(el);
 
+  const fieldW = field.clientWidth;
+  const playerSpawnX = 150;
+  const enemySpawnX = fieldW - 150;
+
   const unit = {
-    uid: unitSeq++,
-    side,
-    id: data.id,
+    uid: state.nextId++,
+    team,
     name: data.name,
-    x: side === "player" ? 80 : field.clientWidth - 80,
-    y: field.clientHeight - 48,
+    img: data.img,
     hp: data.hp,
     maxHp: data.hp,
     atk: data.atk,
     speed: data.speed,
     range: data.range,
-    atkInterval: data.atkInterval,
+    interval: data.interval,
     attackCd: 0,
+    x: team === "player" ? playerSpawnX : enemySpawnX,
+    y: 0,
     el
   };
-  units.push(unit);
-  renderUnit(unit);
+  state.units.push(unit);
+  syncUnitEl(unit);
   return unit;
 }
 
-function renderUnit(unit){
-  unit.el.style.left = `${unit.x}px`;
+function spawnPlayerUnit(id){
+  const data = PLAYER_UNITS.find(u=>u.id===id);
+  if(!data || !state.running) return;
+  if(state.cost < data.cost) return;
+  if(data.cooldown > 0) return;
+
+  state.cost -= data.cost;
+  data.cooldown = 1.2;
+  createUnit(data, "player");
+  addLog(`${data.name} 出撃`);
+  updateHud();
 }
 
-/* =========================
-   バトルUI
-========================= */
-function buildSpawnButtons(){
-  spawnRow.innerHTML = "";
-  activeSpawnButtons = [];
+function spawnEnemyUnit(){
+  if(!state.running) return;
 
-  selectedParty.forEach((ch, index)=>{
-    const btn = document.createElement("button");
-    btn.className = "spawnBtn";
-    btn.innerHTML = `
-      <div class="thumb">${imgHtml(ch.img, ch.name)}</div>
-      <div class="name">${index+1}. ${ch.name}</div>
-      <div class="cost">コスト ${ch.cost}</div>
-      <div class="cd">出撃</div>
-    `;
-    btn.addEventListener("click", ()=>{
-      if(!gameRunning) return;
-      if(cost < ch.cost){
-        logLine(`${ch.name}：コスト不足`);
-        return;
-      }
-      cost -= ch.cost;
-      createUnit(ch, "player");
-      updateHud();
-      logLine(`${ch.name} 出撃`);
-    });
-    spawnRow.appendChild(btn);
-    activeSpawnButtons.push({btn, ch});
-  });
-}
-
-function updateHud(){
-  costText.textContent = Math.floor(cost);
-  timeText.textContent = elapsed.toFixed(1);
-
-  playerHpText.textContent = `${Math.max(0,Math.ceil(playerBaseHp))} / 1000`;
-  enemyHpText.textContent = `${Math.max(0,Math.ceil(enemyBaseHp))} / 1000`;
-
-  playerHpFill.style.width = `${clamp(playerBaseHp / 1000 * 100, 0, 100)}%`;
-  enemyHpFill.style.width = `${clamp(enemyBaseHp / 1000 * 100, 0, 100)}%`;
-
-  activeSpawnButtons.forEach(({btn, ch})=>{
-    btn.disabled = cost < ch.cost || !gameRunning;
-  });
-}
-
-/* =========================
-   エフェクト
-========================= */
-function flashAt(x, y){
-  const fx = document.createElement("div");
-  fx.className = "hitFlash";
-  fx.style.left = `${x}px`;
-  fx.style.top = `${y}px`;
-  field.appendChild(fx);
-  setTimeout(()=>fx.remove(), 240);
-}
-
-/* =========================
-   敵スポーン
-========================= */
-function spawnEnemy(){
-  let type;
-  const r = Math.random();
-  if(elapsed < 15){
-    type = ENEMY_TYPES[0];
-  }else if(elapsed < 30){
-    type = r < .55 ? ENEMY_TYPES[0] : ENEMY_TYPES[1];
-  }else{
-    if(r < .34) type = ENEMY_TYPES[0];
-    else if(r < .67) type = ENEMY_TYPES[1];
-    else type = ENEMY_TYPES[2];
-  }
+  const roll = Math.random();
+  const type = roll < 0.68 ? ENEMY_TYPES[0] : ENEMY_TYPES[1];
   createUnit(type, "enemy");
+  addLog(`${type.name} 出現`);
 }
 
 /* =========================
-   ターゲット取得
+   更新
 ========================= */
-function getNearestTarget(unit){
-  const enemies = units.filter(u => u.side !== unit.side);
-  if(enemies.length === 0) return null;
+function loop(ts){
+  if(!state.running) return;
+  if(!state.lastTs) state.lastTs = ts;
+  const dt = Math.min(0.033, (ts - state.lastTs) / 1000);
+  state.lastTs = ts;
+  state.time += dt;
 
-  if(unit.side === "player"){
-    let nearest = null;
-    let nearestDx = Infinity;
-    enemies.forEach(e=>{
-      const dx = e.x - unit.x;
-      if(dx >= -8 && dx < nearestDx){
-        nearestDx = dx;
-        nearest = e;
-      }
-    });
-    return nearest;
-  }else{
-    let nearest = null;
-    let nearestDx = Infinity;
-    enemies.forEach(e=>{
-      const dx = unit.x - e.x;
-      if(dx >= -8 && dx < nearestDx){
-        nearestDx = dx;
-        nearest = e;
-      }
-    });
-    return nearest;
-  }
-}
+  // コスト回復
+  state.cost = Math.min(999, state.cost + state.costRegen * dt);
 
-/* =========================
-   ダメージ処理
-========================= */
-function damageBase(side, amount){
-  if(side === "player"){
-    playerBaseHp -= amount;
-    flashAt(40, field.clientHeight - 90);
-  }else{
-    enemyBaseHp -= amount;
-    flashAt(field.clientWidth - 40, field.clientHeight - 90);
-  }
-}
-
-function removeUnit(unit){
-  unit.el.remove();
-  units = units.filter(u=>u.uid!==unit.uid);
-}
-
-/* =========================
-   ループ
-========================= */
-function gameLoop(ts){
-  if(!gameRunning) return;
-  if(!lastTs) lastTs = ts;
-  const dt = Math.min((ts - lastTs) / 1000, 0.033);
-  lastTs = ts;
-  elapsed += dt;
-
-  // コスト増加
-  cost = Math.min(maxCost, cost + dt * 18);
+  // 味方クールダウン
+  PLAYER_UNITS.forEach(u=>{
+    if(u.cooldown > 0) u.cooldown = Math.max(0, u.cooldown - dt);
+  });
 
   // 敵出現
-  enemySpawnTimer += dt;
-  const dynamicInterval = Math.max(0.82, enemySpawnInterval - elapsed * 0.02);
-  if(enemySpawnTimer >= dynamicInterval){
-    enemySpawnTimer = 0;
-    spawnEnemy();
+  state.enemySpawnTimer -= dt;
+  if(state.enemySpawnTimer <= 0){
+    spawnEnemyUnit();
+    state.enemySpawnTimer = rand(state.enemySpawnMin, state.enemySpawnMax);
   }
 
-  // ユニット更新
-  for(const unit of units){
-    unit.attackCd -= dt;
+  // 戦闘更新
+  updateUnits(dt);
 
-    const target = getNearestTarget(unit);
-
-    if(unit.side === "player"){
-      if(target){
-        const dist = target.x - unit.x;
-        if(dist <= unit.range){
-          if(unit.attackCd <= 0){
-            target.hp -= unit.atk;
-            unit.attackCd = unit.atkInterval;
-            flashAt((unit.x + target.x) / 2, field.clientHeight - 92);
-          }
-        }else{
-          unit.x += unit.speed * 60 * dt;
-        }
-      }else{
-        // 基地に向かう
-        const baseX = field.clientWidth - 42;
-        const distToBase = baseX - unit.x;
-        if(distToBase <= unit.range){
-          if(unit.attackCd <= 0){
-            damageBase("enemy", unit.atk);
-            unit.attackCd = unit.atkInterval;
-          }
-        }else{
-          unit.x += unit.speed * 60 * dt;
-        }
-      }
-    }else{
-      if(target){
-        const dist = unit.x - target.x;
-        if(dist <= unit.range){
-          if(unit.attackCd <= 0){
-            target.hp -= unit.atk;
-            unit.attackCd = unit.atkInterval;
-            flashAt((unit.x + target.x) / 2, field.clientHeight - 92);
-          }
-        }else{
-          unit.x -= unit.speed * 60 * dt;
-        }
-      }else{
-        const baseX = 42;
-        const distToBase = unit.x - baseX;
-        if(distToBase <= unit.range){
-          if(unit.attackCd <= 0){
-            damageBase("player", unit.atk);
-            unit.attackCd = unit.atkInterval;
-          }
-        }else{
-          unit.x -= unit.speed * 60 * dt;
-        }
-      }
-    }
-
-    renderUnit(unit);
-  }
-
-  // 死亡処理
-  const dead = units.filter(u=>u.hp <= 0);
-  dead.forEach(u=>removeUnit(u));
-
+  // HUD
   updateHud();
 
   // 勝敗
-  if(enemyBaseHp <= 0){
-    endBattle(true);
+  if(state.enemyBaseHp <= 0){
+    endGame(true);
     return;
   }
-  if(playerBaseHp <= 0){
-    endBattle(false);
-    return;
-  }
-
-  rafId = requestAnimationFrame(gameLoop);
-}
-
-/* =========================
-   バトル開始/終了
-========================= */
-function clearUnits(){
-  units.forEach(u=>u.el.remove());
-  units = [];
-}
-
-function startBattle(){
-  if(selectedParty.length < 3){
-    alert("3体選んでね");
+  if(state.playerBaseHp <= 0){
+    endGame(false);
     return;
   }
 
-  clearUnits();
-  battleLog.innerHTML = "戦闘開始。<br>";
-  cost = 100;
-  playerBaseHp = 1000;
-  enemyBaseHp = 1000;
-  enemySpawnTimer = 0;
-  elapsed = 0;
-  lastTs = 0;
-  unitSeq = 1;
-  gameRunning = true;
-
-  buildSpawnButtons();
-  updateHud();
-  showScreen("game");
-
-  cancelAnimationFrame(rafId);
-  rafId = requestAnimationFrame(gameLoop);
+  requestAnimationFrame(loop);
 }
 
-function endBattle(win){
-  gameRunning = false;
-  cancelAnimationFrame(rafId);
+function updateUnits(dt){
+  const fieldW = field.clientWidth;
+  const playerBaseHitX = 80;
+  const enemyBaseHitX = fieldW - 80;
 
-  resultText.textContent = win ? "勝利" : "敗北";
-  resultSub.textContent = win ? "敵基地を破壊した" : "自基地が壊された";
-  resultTime.textContent = `${elapsed.toFixed(1)}s`;
-  resultRemain.textContent = `${Math.max(0, Math.ceil(playerBaseHp))}`;
-  resultParty.textContent = selectedParty.map(v=>v.name).join(" / ");
-  showScreen("result");
+  for(const u of state.units){
+    u.attackCd = Math.max(0, u.attackCd - dt);
+
+    const enemies = state.units.filter(v => v.team !== u.team);
+    let nearest = null;
+    let nearestDist = Infinity;
+
+    for(const e of enemies){
+      const d = Math.abs(e.x - u.x);
+      if(d < nearestDist){
+        nearest = e;
+        nearestDist = d;
+      }
+    }
+
+    const dir = u.team === "player" ? 1 : -1;
+
+    if(nearest && nearestDist <= u.range){
+      if(u.attackCd <= 0){
+        nearest.hp -= u.atk;
+        u.attackCd = u.interval;
+        spawnHit((u.x + nearest.x)/2);
+      }
+    }else{
+      u.x += dir * u.speed * dt;
+    }
+
+    // 基地攻撃
+    if(u.team === "player" && u.x >= enemyBaseHitX){
+      if(u.attackCd <= 0){
+        state.enemyBaseHp -= u.atk;
+        u.attackCd = u.interval;
+        spawnHit(enemyBaseHitX);
+      }
+    }
+    if(u.team === "enemy" && u.x <= playerBaseHitX){
+      if(u.attackCd <= 0){
+        state.playerBaseHp -= u.atk;
+        u.attackCd = u.interval;
+        spawnHit(playerBaseHitX);
+      }
+    }
+  }
+
+  // 死亡処理
+  state.units = state.units.filter(u=>{
+    if(u.hp <= 0){
+      u.el.remove();
+      return false;
+    }
+    return true;
+  });
+
+  // 位置反映
+  state.units.forEach(syncUnitEl);
+}
+
+function syncUnitEl(u){
+  u.el.style.left = `${u.x}px`;
+  const hpw = Math.max(0, (u.hp / u.maxHp) * 100);
+  u.el.querySelector(".hp > i").style.width = `${hpw}%`;
+}
+
+function spawnHit(x){
+  const hit = document.createElement("div");
+  hit.className = "hit";
+  hit.style.left = `${x - 8}px`;
+  hit.style.top = `calc(50% - 18px)`;
+  field.appendChild(hit);
+  setTimeout(()=>hit.remove(), 260);
+}
+
+function endGame(win){
+  state.running = false;
+  resultTitle.textContent = win ? "勝利" : "敗北";
+  resultText.textContent = win
+    ? "敵基地を破壊した。"
+    : "デカブサ基地がやられた。";
+  overlay.classList.add("show");
+  addLog(win ? "勝利" : "敗北");
 }
 
 /* =========================
-   イベント
+   util
 ========================= */
-btnClearPick.addEventListener("click", ()=>{
-  selectedParty = [];
-  updateSelectedRow();
-  refreshPickCards();
-});
+function rand(a,b){
+  return a + Math.random() * (b - a);
+}
 
-btnStartBattle.addEventListener("click", startBattle);
-
-btnBackSelect.addEventListener("click", ()=>{
-  gameRunning = false;
-  cancelAnimationFrame(rafId);
-  showScreen("select");
-});
-
-btnRestartBattle.addEventListener("click", ()=>{
-  startBattle();
-});
-
-btnResultToSelect.addEventListener("click", ()=>{
-  showScreen("select");
-});
-
-btnResultRetry.addEventListener("click", ()=>{
-  startBattle();
-});
-
-/* =========================
-   初期化
-========================= */
-buildSelectScreen();
-
-/* 初期おすすめ編成 */
-selectedParty = [
-  CHARACTERS.find(c=>c.id==="kabao"),
-  CHARACTERS.find(c=>c.id==="tora"),
-  CHARACTERS.find(c=>c.id==="ani")
-];
-updateSelectedRow();
-refreshPickCards();
+restartBtn.onclick = resetGame;
+resetGame();
 </script>
 </body>
 </html>
